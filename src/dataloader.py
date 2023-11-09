@@ -1,5 +1,4 @@
 import numpy as np
-from process_groundTruth import interpolacionConcatenada
 import pandas as pd
 import warnings
 from scipy.interpolate import griddata
@@ -8,6 +7,8 @@ import sys
 sys.path.append("../")
 
 from src.constants import constants
+from process_groundTruth import interpolacionConcatenada
+
 
 warnings.filterwarnings('ignore')
 
@@ -193,7 +194,29 @@ def referencePointMap(dataframe: pd.DataFrame, aps_list: list, batch_size: int =
     return RPMap, APLabel
 
 
-def labelEncoding(labels):
+def labelEncoding(labels: np.ndarray) -> np.ndarray:
+    """
+    Esta función devuelve un array con los valores de las etiquetas codificadas en números enteros.
+
+    Parameters:
+    -----------
+    labels: np.ndarray
+        Array con los valores de las etiquetas a codificar
+
+    Returns:
+    --------
+        numericLabels: np.ndarray
+            Array con los valores de las etiquetas codificadas en números enteros
+
+    Examples:
+    ---------
+
+    >>> labels = np.array(["GEOTECWIFI03", "480Invitados", "eduroam", "wpen-uji", "lt1iot", "cuatroochenta", "UJI"])
+
+    >>> labelEncoding(labels)
+
+    >>> array([0, 1, 2, 3, 4, 5, 6])
+    """
     numericLabels = labels.copy()
     numericLabels[numericLabels == constants.aps[0]] = 0
     numericLabels[numericLabels == constants.aps[1]] = 1
@@ -205,7 +228,30 @@ def labelEncoding(labels):
     return numericLabels.astype(int)
 
 
-def labelDecoding(labels):
+def labelDecoding(labels: np.ndarray) -> np.ndarray:
+    """
+    Esta función devuelve un array con los valores de las etiquetas decodificadas en strings.
+
+    Parameters:
+    -----------
+    labels: np.ndarray
+        Array con los valores de las etiquetas a decodificar
+
+    Returns:
+    --------
+    categoricLabels: np.ndarray
+        Array con los valores de las etiquetas decodificadas en strings
+
+    Examples:
+    ---------
+
+    >>> labels = np.array([0, 1, 2, 3, 4, 5, 6])
+
+    >>> labelDecoding(labels)
+
+    >>> array(["GEOTECWIFI03", "480Invitados", "eduroam", "wpen-uji", "lt1iot", "cuatroochenta", "UJI"])
+    """
+
     categoricLabels = labels.copy()
     if len(categoricLabels.shape) == 2:
         categoricLabels = categoricLabels.reshape(categoricLabels.shape[0], )
@@ -215,6 +261,63 @@ def labelDecoding(labels):
 
 
 class DataLoader:
+    """
+    Esta clase se encarga de cargar los datos de los mapas de referencia continua para cada AP (wifi) y sus etiquetas.
+
+    Attributes:
+    -----------
+    data_dir: str
+        Ruta del archivo csv con los datos de los mapas de referencia continua para cada AP (wifi) y sus etiquetas
+    aps_list: list
+        Lista de APs (wifi) a considerar para la generación del mapa de referencia continua
+    batch_size: int = 30
+        Tamaño de la ventana de tiempo para la generación de cada mapa de referencia continua (número de segundos a considerar para calcular la media de RSS en cada RP)
+    step_size: int = 5
+        Número de segundos que se desplaza la ventana de tiempo para la generación de cada mapa de referencia continua. Si no queremos overlapping (entrecruzamiento de ventanas), tenemos que asignar el mismo valor que batch_size
+    size_reference_point_map: int = 300
+        Tamaño del mapa de referencia continua (número de RPs muestreadas en cada dimensión)
+    return_axis_coords: bool = False
+        Si es True, devuelve las coordenadas x e y del mapa de referencia continua. Si es False, devuelve únicamente el mapa de referencia continua y las etiquetas de los APs (wifi)
+
+    Methods:
+    --------
+    __getData(data_dir: str) -> pd.DataFrame:
+        Esta función devuelve un DataFrame con los datos de los mapas de referencia continua para cada AP (wifi) y sus etiquetas
+
+    __call__(*args, **kwargs) -> np.ndarray:
+        Esta función devuelve los mapas de referencia continua para cada AP (wifi) y sus etiquetas
+
+    Examples:
+    ---------
+
+    Con overlapping
+
+    >>> dataloader = DataLoader(data_dir=f"{constants.data.FINAL_PATH}/groundtruth.csv",
+                                aps_list=constants.aps, batch_size=30, step_size=5,
+                                size_reference_point_map=300,
+                                return_axis_coords=False)
+
+    >>> X, y, _ = dataloader()
+
+    Sin overlapping
+
+    >>> dataloader = DataLoader(data_dir=f"{constants.data.FINAL_PATH}/groundtruth.csv",
+                                aps_list=constants.aps, batch_size=30, step_size=30,
+                                size_reference_point_map=300,
+                                return_axis_coords=False)
+
+    >>> X, y, _ = dataloader()
+
+    Devolver coordenadas x e y
+
+    >>> dataloader = DataLoader(data_dir=f"{constants.data.FINAL_PATH}/groundtruth.csv",
+                                aps_list=constants.aps, batch_size=30, step_size=5,
+                                size_reference_point_map=300,
+                                return_axis_coords=True)
+
+    >>> X, y, [x_coords, y_coords] = dataloader()
+
+    """
     def __init__(self, data_dir: str, aps_list: list, batch_size: int = 30, step_size: int = 5,
                  size_reference_point_map: int = 300,
                  return_axis_coords: bool = False):
