@@ -20,6 +20,22 @@ El script **process_groundTruth.py** se encarga de procesar los datos en bruto, 
 
 ## Carga de los datos
 
+Para cargar los datos, se ha definido una clase **DataLoader** dentro del directorio **src**. Esta clase se encarga de cargar los datos, procesarlos y devolverlos en formato *numpy array*.
+
+Una de las operaciones realizadas en los datos como preprocesamiento consiste en generar los mapas de reference points continuos desde los mapas discretos. Para ello:
+
+1) Se leen el fichero de datos **groundtruth.csv**
+2) Para cada AP se genera un mapa de puntos de referencia continuos de la siguiente forma:
+   1) Para cada batch temporal de datos, se calcula la media de las señales RSSI del AP en cada Reference Point
+   2) Se interpola la señal RSSI en cada Reference Point para obtener un mapa continuo, con RSS para todo punto (latitud, longitud) del mapa
+   3) Se interpolan datos ausentes resultado de la interpolación anterior
+
+![Imagen izquierda: Media RSS de una AP en todo un intervalo temporal para cada punto discreto anotado (Latitud, Longitud). Imagen central: Interpolación valores RSS para todo punto (latitud, longitud). Imagen derecha: Interpolación valores ausentes de la interpolación anterior](rpmap_disc_cont_inter.png)
+
+Imagen izquierda: Media RSS de una AP en todo un intervalo temporal para cada punto discreto anotado (Latitud, Longitud). Imagen central: Interpolación valores RSS para todo punto (latitud, longitud). Imagen derecha: Interpolación valores ausentes de la interpolación anterior
+
+Todas estas operaciones las ejecuta el **DataLoader** utilizando la función **referencePointMap**
+
 ```python
 from src import dataloader
 from src import constants
@@ -29,6 +45,10 @@ X, y = dataloader.DataLoader(data_dir=f"../{constants.data.FINAL_PATH}/groundtru
                              size_reference_point_map=300,
                              return_axis_coords=False)()
 ```
+
+Después de cargar los datos con el **DataLoader**, tenemos imágenes de APs como la que sigue:
+
+![Imagen AP](outputs/RPMap/rpmap_300_overlapping/imagenes/GEOTECWIFI03.png)
 
 ## Entrenamiento del modelo
 
