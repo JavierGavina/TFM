@@ -163,7 +163,7 @@ class cGAN(tf.keras.models.Model):
 if __name__ == "__main__":
     tf.keras.models.load_model("")
 
-    X, y, _ = dataloader.DataLoader(data_dir=f"../{constants.directories.FINAL_PATH}/groundtruth.csv",
+    X, y, _ = dataloader.DataLoader(data_dir=f"../{constants.data.FINAL_PATH}/groundtruth.csv",
                                     aps_list=constants.aps, batch_size=30, step_size=5,
                                     size_reference_point_map=300,
                                     return_axis_coords=False)()
@@ -173,8 +173,8 @@ if __name__ == "__main__":
     y_encoded = dataloader.labelEncoding(y)
     dataset = tf.data.Dataset.from_tensor_slices((X_reescalado, y_encoded)).shuffle(800).batch(8)
 
-    os.makedirs(constants.models.training, exist_ok=True)
-    os.makedirs(constants.models.cgan_300, exist_ok=True)
+    os.makedirs(constants.outputs.models.training, exist_ok=True)
+    os.makedirs(constants.outputs.models.cgan_300, exist_ok=True)
 
     path_images_training = f"../{constants.models.cgan_300}/training_images"
     path_checkpoints = f"../{constants.models.cgan_300}/checkpoints"

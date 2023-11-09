@@ -23,7 +23,8 @@ El script **process_groundTruth.py** se encarga de procesar los datos en bruto, 
 ```python
 from src import dataloader
 from src import constants
-X, y = dataloader.DataLoader(data_dir=f"../{constants.directories.FINAL_PATH}/groundtruth.csv",
+
+X, y = dataloader.DataLoader(data_dir=f"../{constants.data.FINAL_PATH}/groundtruth.csv",
                              aps_list=constants.aps, batch_size=30, step_size=5,
                              size_reference_point_map=300,
                              return_axis_coords=False)()

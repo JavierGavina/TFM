@@ -122,7 +122,7 @@ def referencePointMap(dataframe: pd.DataFrame, aps_list: list, batch_size: int =
 
     Returns:
     --------
-    RPMap: np.ndarray
+    reference_point_map: np.ndarray
         Matriz con los valores interpolados del RSS de cada AP (wifi) para toda latitud y longitud en el espacio de muestreo
 
     APLabel: np.ndarray
@@ -156,12 +156,12 @@ def referencePointMap(dataframe: pd.DataFrame, aps_list: list, batch_size: int =
 
     Generación de mapa de referencia continua
 
-    >>> RPMap, APLabel = referencePointMap(dataframe, aps_list=aps_list, batch_size=5, step_size=2, size_reference_point_map=2)
+    >>> reference_point_map, APLabel = referencePointMap(dataframe, aps_list=aps_list, batch_size=5, step_size=2, size_reference_point_map=2)
     """
 
     nx = ny = size_reference_point_map
     t_max = dataframe["AppTimestamp(s)"].max()
-    samples_per_RP = int((t_max / step_size) - step_size)
+    samples_per_RP = int((t_max - batch_size) / step_size) + 1
     RPMap = np.zeros((samples_per_RP * len(aps_list), nx, ny))
     APLabel = []
     combinaciones = parse_windows(t_max, batch_size, step_size)

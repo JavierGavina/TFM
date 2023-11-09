@@ -21,8 +21,35 @@ class Directories:
 
 
 class Models:
-    training = "outputs/processTraining"
-    cgan_300 = "outputs/processTraining/cGAN_300_300"
+    """
+    Clase que contiene las constantes de los directorios de los modelos del proyecto
+    """
+    training = "outputs/process_training"
+    cgan_300 = "outputs/process_training/cGAN_300_300"
+
+
+class RPMAP:
+    PATH_RPMAP = "outputs/RPMap"
+    rpmap_300_overlapping = f"{PATH_RPMAP}/rpmap_300_overlapping"
+    rpmap_300_sinOverlapping = f"{PATH_RPMAP}/rpmap_300_sinOverlapping"
+    rpmap_28_overlapping = f"{PATH_RPMAP}/rpmap_28_overlapping"
+
+
+class Outputs:
+    """
+    Clase que contiene las constantes de los directorios de los outputs del proyecto
+
+    Attributes:
+    ___________
+        PATH_OUTPUTS: str
+            La dirección raíz de los outputs
+        PATH_RPMAP: str
+            La dirección de los mapas de referencia continua
+    """
+    PATH_OUTPUTS = "outputs"
+
+    models = Models()
+    rpmap = RPMAP()
 
 
 class constants:
@@ -33,7 +60,7 @@ class constants:
     ___________
         dictionary_decoding: dict
             Diccionario que transforma el label a (longitud, latitud) en metros
-        directories: Directories
+        data: Directories
             Clase que contiene las constantes de los directorios del proyecto
         aps: list
             Lista de APs (wifi) a considerar para la generación del mapa de referencia continua
@@ -45,7 +72,11 @@ class constants:
             Lista de columnas del giroscopio
         labels_dictionary_meters: dict
             Diccionario que transforma el label a (longitud, latitud) en metros
+        outputs: Outputs
+            Clase que contiene las constantes de los directorios de todas las salidas del proyecto
     """
+
+    T_MAX_SAMPLING = 1140  # Número de segundos máximo de recogida de muestras por cada Reference Point
 
     dictionary_decoding = {
         0: "GEOTECWIFI03", 1: "480Invitados",
@@ -54,7 +85,7 @@ class constants:
         6: "UJI"
     }
 
-    directories = Directories()
+    data = Directories()
 
     aps = ['GEOTECWIFI03', '480Invitados', 'eduroam', 'wpen-uji', 'lt1iot', 'cuatroochenta', 'UJI']
     magnetometer_cols = ["Mag_X", "Mag_Y", "Mag_Z"]
@@ -73,5 +104,4 @@ class constants:
         21: (3, 14.4), 22: (0, 14.4)
     }
 
-    models = Models()
-
+    outputs = Outputs()

@@ -1,206 +1,11 @@
 import os
+import shutil
+import tqdm
 
-import PIL
+import IPython
+import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-import matplotlib.pyplot as plt
-import IPython
-from scipy.interpolate import griddata
-import pandas as pd
-
-
-def get_concat_v(im1: PIL.PngImagePlugin.PngImageFile,
-                 im2: PIL.PngImagePlugin.PngImageFile) -> PIL.PngImagePlugin.PngImageFile:
-    """
-    Esta función se encarga de concatenar dos imágenes verticalmente
-
-    Parameters:
-    ----------
-    im1: PIL.PngImagePlugin.PngImageFile
-        Imágenes que corresponden con las imágenes reales
-    im2: PIL.PngImagePlugin.PngImageFile
-        Imágenes que corresponden con las imágenes fake
-
-    Returns:
-    ----------
-    dst : PIL.PngImagePlugin.PngImageFile
-        Imágen PIL concatenada verticalmente de las imágenes reales y fake
-
-    Examples
-    --------
-
-    Concatenar imagenes reales y falsas
-
-    >>> real = Image.open("temps/real_0001.png")
-
-    >>> fake = Image.open("temps/fake_0001.png")
-
-    >>> concat = get_concat_v(real, fake)
-    """
-
-    dst = Image.new('RGB', (im1.width, im1.height + im2.height))
-    dst.paste(im1, (0, 0))
-    dst.paste(im2, (0, im1.height))
-    return dst
-
-
-def plot_real_vs_fake(x_combined_batch: np.array, epoch: int, batch: int) -> None:
-    """
-    Esta función se encarga de mostrar las imágenes reales y las generadas por el modelo en cada época de la GAN
-
-    Parameters:
-    ----------
-    x_combined_batch: np.ndarray
-        batch de imágenes reales y generadas
-    epoch: int
-        época de la GAN
-    batch: int
-        Tamaño del lote
-
-    Returns:
-    ----------
-    plot real vs fake images : none
-        Muestra las imágenes reales y las generadas por el modelo en cada época de la GAN y las guarda en el directorio fingerprints_generated
-
-    Examples
-    --------
-
-    Batch combinado de imágenes reales y generadas
-
-    >>> x_combined_batch = np.concatenate((legit_images, syntetic_images))
-
-    Visualizar las imágenes reales y generadas
-
-    >>> plot_real_vs_fake(x_combined_batch, epoch, batch)
-    """
-
-    # Create a folder to save the images
-    os.makedirs("temps", exist_ok=True)
-
-    # Plot the images
-    for idx in range(np.int64(batch / 2) * 2):
-
-        # Plot the real images
-        if idx < np.int64(batch / 2):
-            plt.subplot(int(np.ceil(np.int64(batch / 2) / 4)), 4, idx + 1)
-            plt.imshow(np.repeat(x_combined_batch[idx, :, :, 0], 4, axis=1), plt.cm.Greys)
-            plt.axis('off')
-            plt.title(f"reales {epoch}")
-
-        # Save the real images
-        if idx == np.int64(batch / 2) - 1:
-            plt.tight_layout()
-            plt.savefig('temps/real_{:04d}.png'.format(epoch))
-
-        # Plot the fake images
-        if idx >= np.int64(batch / 2):
-            plt.subplot(int(np.ceil(np.int64(batch / 2) / 4)), 4, idx - (np.int64(batch / 2) - 1))
-            plt.imshow(np.repeat(x_combined_batch[idx, :, :, 0], 4, axis=1), plt.cm.Greys)
-            plt.axis('off')
-            plt.title(f"fake {epoch}")
-
-        # Save the fake images
-        if idx == (np.int64(batch / 2) * 2) - 1:
-            plt.subplot(int(np.ceil(np.int64(batch / 2) / 4)), 4, idx - (np.int64(batch / 2) - 1))
-            plt.imshow(np.repeat(x_combined_batch[idx, :, :, 0], 4, axis=1), plt.cm.Greys)
-            plt.axis('off')
-            plt.title(f"fake {epoch}")
-            plt.tight_layout()
-            plt.savefig('temps/fake_{:04d}.png'.format(epoch))
-
-    # Concatenate the real and fake images
-    real = Image.open("temps/real_{:04d}.png".format(epoch))
-    fake = Image.open("temps/fake_{:04d}.png".format(epoch))
-    concat = get_concat_v(real, fake)
-
-    # Save the concatenated images
-    concat.save("fingerprints_generated/image_at_epoch_{:04d}.png".format(epoch))
-
-
-def plot_real_vs_fake_conditional(x_combined_batch: np.ndarray, labels: np.ndarray, epoch: int, batch: int) -> None:
-    """
-    Esta función se encarga de mostrar las imágenes reales y las generadas por el modelo en cada época de la GAN condicional
-
-    Parameters:
-    ----------
-    x_combined_batch: np.ndarray
-        batch de imágenes reales y generadas
-    labels: np.ndarray
-        Etiquetas de las imágenes
-    epoch: int
-        época de la GAN
-    batch: int
-        Tamaño del lote
-    """
-    # Create a folder to save the images
-    os.makedirs("temps", exist_ok=True)
-
-    # Plot the images
-    for idx in range(np.int64(batch / 2) * 2):
-
-        # Plot the real images
-        if idx < np.int64(batch / 2):
-            plt.subplot(int(np.ceil(np.int64(batch / 2) / 4)), 4, idx + 1)
-            plt.imshow(np.repeat(x_combined_batch[idx, :, :, 0], 4, axis=1), plt.cm.Greys)
-            plt.axis('off')
-            plt.title(f"reales ep: {epoch}, l: {labels.argmax(axis=1)[idx]}")
-
-        # Save the real images
-        if idx == np.int64(batch / 2) - 1:
-            plt.tight_layout()
-            plt.savefig('temps/real_{:04d}.png'.format(epoch))
-
-        # Plot the fake images
-        if idx >= np.int64(batch / 2):
-            idx_label = idx - np.int64(batch / 2)
-            plt.subplot(int(np.ceil(np.int64(batch / 2) / 4)), 4, idx_label + 1)
-            plt.imshow(np.repeat(x_combined_batch[idx, :, :, 0], 4, axis=1), plt.cm.Greys)
-            plt.axis('off')
-            plt.title(f"fake ep: {epoch}, l: {labels.argmax(axis=1)[idx_label]}")
-
-        # Save the fake images
-        if idx == (np.int64(batch / 2) * 2) - 1:
-            plt.subplot(int(np.ceil(np.int64(batch / 2) / 4)), 4, idx_label + 1)
-            plt.imshow(np.repeat(x_combined_batch[idx, :, :, 0], 4, axis=1), plt.cm.Greys)
-            plt.axis('off')
-            plt.title(f"fake ep: {epoch}, l: {labels.argmax(axis=1)[idx_label]}")
-            plt.tight_layout()
-            plt.savefig('temps/fake_{:04d}.png'.format(epoch))
-
-    # Concatenate the real and fake images
-    real = Image.open("temps/real_{:04d}.png".format(epoch))
-    fake = Image.open("temps/fake_{:04d}.png".format(epoch))
-    concat = get_concat_v(real, fake)
-
-    # Save the concatenated images
-    concat.save("fingerprints_generated_conditional/image_at_epoch_{:04d}.png".format(epoch))
-
-
-def obtainEvolutionGAN(folder_path: str = "fingerprints_generated", out_dir: str = "output.gif") -> None:
-    """
-    Esta función se encarga de generar un GIF con la evolución de la GAN
-
-    :type out_dir: str
-    :type folder_path: str
-
-    :param folder_path: por defecto "fingerprints_generated". Dirección donde se encuentran las imágenes generadas en cada época
-    :param out_dir: por defecto "output.gif". Dirección donde se guardará el GIF
-    :return:  none
-    """
-    # List the image files in the folder
-    image_files = [f for f in os.listdir(folder_path) if f.endswith(('.png', '.jpg', '.jpeg', '.gif'))]
-
-    images = []
-
-    # Open and append each image to the list
-    for image_file in image_files:
-        image = Image.open(os.path.join(folder_path, image_file))
-        images.append(image)
-
-    # Save the GIF
-    images[0].save(out_dir, save_all=True, append_images=images[1:], duration=400, loop=0)
-
-    print(f'GIF saved to {out_dir}')
 
 
 def displayGIF(path: str) -> IPython.display.Image:
@@ -212,115 +17,143 @@ def displayGIF(path: str) -> IPython.display.Image:
     return IPython.display.Image(url=path)
 
 
-def interpolateAPImage(df: pd.DataFrame, ap: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def plotAllAP(reference_point_map: np.ndarray, labels: np.ndarray, aps_list: list, path: str = "reference_point_map",
+              save_ok: bool = True, plot_ok: bool = True) -> None:
     """
-    Interpola la imagen de un AP en función de la latitud y longitud de cada Reference Point (RP)
+    Esta función realiza un plot de todas las imágenes de los mapas de referencia continua para cada AP (wifi) en una misma figura.
+    Opcionalmente, se puede guardar cada figura en un archivo PNG y mostrar la figura como salida.
 
     Parameters:
-    ----------
-    df: pd.DataFrame
-        Dataframe con las columnas Longitude, Latitude y los APs
-    ap: str
-        nombre del AP (Punto de acceso o wifi)
+    -----------
+    reference_point_map: np.ndarray
+        Matriz con los valores interpolados del RSS de cada AP (wifi) para toda latitud y longitud en el espacio de muestreo
+
+    labels: np.ndarray
+        Etiquetas de los APs (wifi) para cada mapa de referencia continua
+
+    aps_list: list
+        Lista de APs (wifi) a considerar para la generación del mapa de referencia continua
+
+    path: str = "reference_point_map"
+        Ruta donde se guardarán las figuras de los mapas de referencia continua para cada AP (wifi)
+
+    save_ok: bool = True
+        Si es True, guarda las figuras de los mapas de referencia continua para cada AP (wifi) en un archivo PNG
+
+    plot_ok: bool = True
+        Si es True, muestra las figuras de los mapas de referencia continua para cada AP (wifi) como salida
 
     Returns:
-    ----------
-    x_g : ndarray
-        Array ordenado con las longitudes de los RP
-    y_g : ndarray
-        Array ordenado con las latitudes de los RP.
-    grid_z0 : ndarray
-        Array con los valores RSSI de la imagen interpolada del AP
-
-    Examples
     --------
-    Leer los datos del ground truth
-    >>> import pandas as pd
+    None:
+        Esta función no devuelve ningún valor, solamente guarda las figuras de los mapas de referencia continua para cada AP (wifi) en un archivo PNG y/o muestra las figuras de los mapas de referencia continua para cada AP (wifi) como salida
 
-    >>> df = pd.read_csv("../data/final_groundtruth/groundtruth.csv")
-
-    Seleccionar las columnas del WiFi
-
-    >>> wifi_train = df[df.columns[:8].tolist()]
-
-    Interpolar la imagen del AP 480Invitados para todos los (latitud, longitud) posibles
-
-    >>> x_g, y_g, grid_z0 = interpolateAPImage(wifi_train, "480Invitados")
-
-    Visualizar la imagen interpolada
-
-    >>> plotInterpolatedAPImage(x_g, y_g, grid_z0, "480Invitados")
+    Examples:
+    ---------
+    >>> plotAllAP(reference_point_map=reference_point_map, labels=APLabel, aps_list=aps, path="reference_point_map", save_ok=True, plot_ok=True)
     """
+    if save_ok:
+        os.makedirs(path, exist_ok=True)  # Creamos la carpeta donde se guardarán las figuras
+    nAPs = len(aps_list)  # Número de APs (wifi) a considerar
+    n_samples = reference_point_map.shape[0]  # Número de muestras
+    samples_per_AP = int(reference_point_map.shape[0] / nAPs)  # Número de muestras por AP (wifi)
+    for id_ap in tqdm.tqdm(range(0, n_samples, samples_per_AP)):  # Iteramos sobre cada AP (wifi)
+        ap = labels[id_ap]  # Etiqueta del AP (wifi)
+        if samples_per_AP > 80:
+            plt.figure(figsize=(20, 80), dpi=50)  # Creamos la figura
+        else:
+            plt.figure(figsize=(20, 15), dpi=50) # Creamos la figura
+        for idx in range(samples_per_AP):  # Iteramos sobre cada muestra
+            plt.axis('off')
+            plt.subplot(int(np.ceil(samples_per_AP / 7)), 7, idx + 1)  # Creamos un subplot para cada muestra
+            plt.imshow(reference_point_map[idx + id_ap, :, :], cmap="seismic", vmin=0, vmax=1);
+            plt.colorbar()  # Mostramos la imagen
+            plt.gca().invert_xaxis()  # Invertimos eje x
+            plt.gca().invert_yaxis()  # Invertimos eje y
+            plt.title(f"{ap}, t={idx}")  # Configuramos el subplot
+            plt.tight_layout()  # Ajustamos el subplot
+        if save_ok:  # Si save_ok es True, guardamos la figura
+            plt.savefig(f"{path}/{ap}.png")  # Guardamos la figura
+        if plot_ok:  # Si plot_ok es True, mostramos la figura
+            plt.show()  # Mostramos la figura
+        plt.close()  # Cerramos la figura
 
-    aux = df.groupby(["Longitude", "Latitude"]).mean()[ap].reset_index()
-    miny, maxy = min(aux['Latitude']), max(aux['Latitude'])
-    minx, maxx = min(aux['Longitude']), max(aux['Longitude'])
-    grdi_x = np.linspace(minx, maxx, num=300, endpoint=False)
-    grdi_y = np.linspace(miny, maxy, num=300, endpoint=False)
-    yg, xg = np.meshgrid(grdi_y, grdi_x, indexing='ij')
-    x_g = xg.ravel()
-    y_g = yg.ravel()
 
-    aux2 = aux.drop([ap], 1)
-    aux3 = aux[ap]
-    points = np.array(aux2)
-    values = np.array(aux3)
-    grid_z0 = griddata(points, values, (x_g, y_g), method='cubic')
-    min_value = grid_z0[~np.isnan(grid_z0)].min()
-    max_value = grid_z0[~np.isnan(grid_z0)].max()
-    grid_z0 = (grid_z0 - min_value) / (max_value - min_value)
-    return x_g, y_g, grid_z0
-
-
-def plotInterpolatedAPImage(x_g: np.ndarray, y_g: np.ndarray, grid_z0: np.ndarray, ap: str):
+def save_ap_gif(reference_point_map: np.ndarray, x_g: np.ndarray, y_g: np.ndarray, aps_list: list, path="gifs"):
     """
-    Visualización de una AP interpolada para todas las posiciones (latitud, longitud) posibles
+    Esta función se encarga de guardar un GIF para cada AP (wifi) con los mapas de referencia continua para cada instante de tiempo.
 
     Parameters:
-    ----------
-    x_g: array_like
-       Array ordenado con las coordenadas de longitud de los RP
-    y_g: array_like
-       Array ordenado con las coordenadas de latitud de los RP
-    grid_z0: array_like
-       Array con los valores RSSI de la imagen interpolada del AP
-    ap: str
-       nombre del AP (Punto de acceso o wifi)
+    -----------
+    reference_point_map: np.ndarray
+        Matriz con los valores interpolados del RSS de cada AP (wifi) para toda latitud y longitud en el espacio de muestreo
+
+    x_g: np.ndarray
+        Coordenadas longitud continuas del mapa de referencia continua
+
+    y_g: np.ndarray
+        Coordenadas latitud continuas del mapa de referencia continua
+
+    aps_list: list
+        Lista de APs (wifi) a considerar para la generación del mapa de referencia continua
+
+    path: str = "gifs"
+        Ruta donde se guardarán los GIFs de los mapas de referencia continua para cada AP (wifi)
+
 
     Returns:
-    ----------
-    Visualization : none
-       Visualización de la imagen interpolada del AP
-
-    Examples
     --------
-    Leer los datos del ground truth
-    >>> import pandas as pd
+        None:
+            Esta función no devuelve ningún valor, solamente guarda los GIFs de los mapas de referencia continua para cada AP (wifi) en un archivo GIF
 
-    >>> df = pd.read_csv("../data/final_groundtruth/groundtruth.csv")
+    Examples:
+    ---------
+    Carga de los datos:
 
-    Seleccionar las columnas del WiFi
+    >>> from src import dataloader
+    >>> X, y, [x_coords, y_coords] = dataloader.DataLoader(data_dir=f"../{constants.data.FINAL_PATH}/groundtruth.csv",
+                                                           aps_list=constants.aps, batch_size=30, step_size=5,
+                                                           size_reference_point_map=300,
+                                                           return_axis_coords=False)()
 
-    >>> wifi_train = df[df.columns[:8].tolist()]
+    >>> RPMap, APLabel = X[:,:,:,0], y[:,0]
+    >>> save_ap_gif(reference_point_map=RPMap, x_g=x_g, y_g=y_g, aps_list=aps, path="gifs")
 
-    Interpolar la imagen del AP 480Invitados para todos los (latitud, longitud) posibles
 
-    >>> x_g, y_g, grid_z0 = interpolateAPImage(wifi_train, "480Invitados")
-
-    Visualizar la imagen interpolada
-
-    >>> plotInterpolatedAPImage(x_g, y_g, grid_z0, "480Invitados")
     """
+    os.makedirs(path, exist_ok=True)
+    os.makedirs(f"{path}/temp", exist_ok=True)
 
-    plt.subplot(111)
-    plt.scatter(x_g, y_g, s=2, marker='o', c=grid_z0, cmap=plt.cm.hsv)
-    plt.ylabel('Latitude')
-    plt.xlabel('Longitude')
-    plt.title(f"Interpolated {ap} image")
-    cbar = plt.colorbar()
-    cbar.set_label('Chlor milligram m-3')
-    plt.subplots_adjust(left=0.0, bottom=0.0, right=1.5, top=1.5, wspace=0.2, hspace=0.2)
-    ax = plt.gca()
-    ax.invert_xaxis()
-    ax.set_facecolor('xkcd:black')
-    plt.show()
+    n_samples = reference_point_map.shape[0]
+    n_APs = len(aps_list)
+    samples_per_AP = int(n_samples / n_APs)
+
+    for id_ap, id2_ap in tqdm.tqdm(enumerate(range(0, n_samples, samples_per_AP))):
+        ap = aps_list[id_ap]
+        os.makedirs(f"{path}/temp/{ap}", exist_ok=True)
+        for idx in range(samples_per_AP):
+            plt.figure(figsize=(15, 15))
+            plt.scatter(x_g, y_g, s=2, marker='o', c=reference_point_map[idx + id2_ap, :, :].flatten(), cmap="seismic", vmin=0,
+                        vmax=1)
+            plt.ylabel('Latitude', size=20)
+            plt.xlabel('Longitude', size=20)
+            plt.title(f"{ap}, t={idx}", fontsize=20)
+            cbar = plt.colorbar()
+            cbar.set_label(f'RSS {ap}')
+            ax = plt.gca()
+            ax.invert_xaxis()
+            ax.set_facecolor('xkcd:black')
+            plt.savefig("{}/temp/{}/{}_t{:04d}.png".format(path, ap, ap, idx))
+            plt.close()
+        # conversión a gif
+        folder_path = f"{path}/temp/{ap}"
+        # Lista de nombres de archivo de imágenes PNG en la carpeta
+        png_files = [f for f in os.listdir(folder_path) if f.endswith('.png')]
+        # Ordenar los nombres de archivo en orden alfabético
+        png_files.sort()
+        # Lista de objetos Image para cada imagen PNG
+        image_list = [Image.open(os.path.join(folder_path, f)) for f in png_files]
+        # Guardar las imágenes como un archivo GIF animado
+        image_list[0].save(f"{path}/{ap}.gif", save_all=True, append_images=image_list[1:], duration=350, loop=0)
+
+    shutil.rmtree(f"{path}/temp")

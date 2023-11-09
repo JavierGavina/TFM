@@ -5,12 +5,11 @@ import pandas as pd
 import glob
 from src.constants import constants
 
-ACCELEROMETER_CHECKPOINT = f"{constants.directories.CHECKPOINT_DATA_PATH}/Accelerometer"
-MAGNETOMETER_CHECKPOINT = f"{constants.directories.CHECKPOINT_DATA_PATH}/Magnetomerer"
-GYROSCOPE_CHECKPOINT = f"{constants.directories.CHECKPOINT_DATA_PATH}/Gyroscope"
-WIFI_CHECKPOINT = f"{constants.directories.CHECKPOINT_DATA_PATH}/Wifi"
+ACCELEROMETER_CHECKPOINT = f"{constants.data.CHECKPOINT_DATA_PATH}/Accelerometer"
+MAGNETOMETER_CHECKPOINT = f"{constants.data.CHECKPOINT_DATA_PATH}/Magnetomerer"
+GYROSCOPE_CHECKPOINT = f"{constants.data.CHECKPOINT_DATA_PATH}/Gyroscope"
+WIFI_CHECKPOINT = f"{constants.data.CHECKPOINT_DATA_PATH}/Wifi"
 
-T_MAX_SAMPLING = 1140  # Número de segundos máximo de recogida de muestras por cada Reference Point
 
 # Cogemos los ssids que han aparecido en más de una recogida de datos
 lista_ssid_candidatos = constants.aps
@@ -47,7 +46,7 @@ def correctWifiFP(wifi_data: pd.DataFrame) -> pd.DataFrame:
     # Creamos un dataframe con todos los intervalos de tiempo y todas las balizas
     labels, intervalos_tiempo, ssids = [], [], []
     for lab in range(23):
-        for ts in range(0, T_MAX_SAMPLING + 1, 1):
+        for ts in range(0, constants.T_MAX_SAMPLING + 1, 1):
             for ssid in lista_ssid_candidatos:
                 labels.append(lab)
                 intervalos_tiempo.append(ts)
@@ -115,7 +114,7 @@ def correctMetrics(data: pd.DataFrame, columns_to_correct: list) -> pd.DataFrame
     >>> magnetometer_corrected = correctMetrics(magnetometer, ["Mag_X", "Mag_Y", "Mag_Z"])
     """
 
-    intervalos_tiempo = np.arange(0, T_MAX_SAMPLING + 1, 1)
+    intervalos_tiempo = np.arange(0, constants.T_MAX_SAMPLING + 1, 1)
     df_intervalos = pd.DataFrame({'AppTimestamp(s)': intervalos_tiempo})
     data_corrected = pd.DataFrame(
         columns=["AppTimestamp(s)"] + columns_to_correct +
@@ -338,7 +337,7 @@ def main():
     gyroscope_data = read_checkpoint(GYROSCOPE_CHECKPOINT)
     wifi_data = read_checkpoint(WIFI_CHECKPOINT)
 
-    os.makedirs(constants.directories.MID_PATH, exist_ok=True)  # Creamos el directorio si no existe
+    os.makedirs(constants.data.MID_PATH, exist_ok=True)  # Creamos el directorio si no existe
     accelerometer_data = correctMetrics(data=accelerometer_data,
                                         columns_to_correct=constants.accelerometer_cols)  # Corregimos el acelerómetro
     magnetometer_data = correctMetrics(data=magnetometer_data,
@@ -348,15 +347,15 @@ def main():
     wifi_data = correctWifiFP(wifi_data=wifi_data)  # Corregimos el WiFi
 
     # Guardamos los datos corregidos
-    accelerometer_data.to_csv(f"{constants.directories.MID_PATH}/accelerometer.csv", index=False)
-    magnetometer_data.to_csv(f"{constants.directories.MID_PATH}/magnetometer.csv", index=False)
-    gyroscope_data.to_csv(f"{constants.directories.MID_PATH}/gyroscope.csv", index=False)
-    wifi_data.to_csv(f"{constants.directories.MID_PATH}/wifi.csv", index=False)
+    accelerometer_data.to_csv(f"{constants.data.MID_PATH}/accelerometer.csv", index=False)
+    magnetometer_data.to_csv(f"{constants.data.MID_PATH}/magnetometer.csv", index=False)
+    gyroscope_data.to_csv(f"{constants.data.MID_PATH}/gyroscope.csv", index=False)
+    wifi_data.to_csv(f"{constants.data.MID_PATH}/wifi.csv", index=False)
 
     '''
     Juntamos todos los datos y los guardamos en el path del acelerómetro
     '''
-    os.makedirs(constants.directories.FINAL_PATH, exist_ok=True)  # Creamos el directorio si no existe
+    os.makedirs(constants.data.FINAL_PATH, exist_ok=True)  # Creamos el directorio si no existe
     cols_to_join = ["AppTimestamp(s)", "Latitude", "Longitude", "Label"]  # Columnas en común cada dataset
     order_of_columns = ["AppTimestamp(s)"] + \
                        constants.aps + constants.accelerometer_cols + \
@@ -371,7 +370,7 @@ def main():
                            on=cols_to_join, how="left")[order_of_columns]
 
     # guardamos el dataset final
-    joined_data.to_csv(f"{constants.directories.FINAL_PATH}/groundtruth.csv", index=False)
+    joined_data.to_csv(f"{constants.data.FINAL_PATH}/groundtruth.csv", index=False)
 
 
 if __name__ == "__main__":
