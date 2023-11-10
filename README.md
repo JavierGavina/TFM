@@ -40,15 +40,67 @@ Todas estas operaciones las ejecuta el **DataLoader** utilizando la función **r
 from src import dataloader
 from src import constants
 
-X, y = dataloader.DataLoader(data_dir=f"../{constants.data.FINAL_PATH}/groundtruth.csv",
+X, y = dataloader.DataLoader(data_dir=f"{constants.data.FINAL_PATH}/groundtruth.csv",
                              aps_list=constants.aps, batch_size=30, step_size=5,
                              size_reference_point_map=300,
                              return_axis_coords=False)()
 ```
 
-Después de cargar los datos con el **DataLoader**, tenemos imágenes de APs como la que sigue:
+
+
+
+## Herramientas de visualización
+
+Para visualizar los datos, se han implementado una serie de funciones en el script **src/imutils.py**:
+<ul>
+    <li><b>plotAllAP</b> Muestra y guarda la imagen del mapa continuo de RP para cada instante temporal</li>
+    <li><b>save_ap_gif</b> Guarda un gif con la evolución temporal del mapa continuo de RP</li>
+    <li><b>displayGif</b> Muestra en el notebook el gif</li>
+</ul>
+
+
+```python
+from src import dataloader
+from src import constants
+from src import imutils
+
+X, y, _ = dataloader.DataLoader(data_dir=f"{constants.data.FINAL_PATH}/groundtruth.csv",
+                                                   aps_list=constants.aps, batch_size=30, step_size=5,
+                                                   size_reference_point_map=300,
+                                                   return_axis_coords=False)()
+RPMap, APLabel = X[:,:,:,0], y[:,0]
+
+# Si queremos solamente mostrar el mapa de un AP sin guardar la imagen
+imutils.plotAllAp(reference_point_map = RPMap, labels = APLabel, aps_list = constants.aps,
+                  save_ok = False, plot_ok = True)
+```
+
+Se visualizaría la siguiente imagen:
 
 ![Imagen AP](outputs/RPMap/rpmap_300_overlapping/imagenes/GEOTECWIFI03.png)
+
+
+Si queremos guardar el gif con la evolución temporal del mapa de un AP:
+
+
+```python
+X, y, [x_coords, y_coords] = dataloader.DataLoader(data_dir=f"{constants.data.FINAL_PATH}/groundtruth.csv",
+                                                   aps_list=constants.aps, batch_size=30, step_size=5,
+                                                   size_reference_point_map=300,
+                                                   return_axis_coords=False)()
+RPMap, APLabel = X[:,:,:,0], y[:,0]
+imutils.save_ap_gif(reference_point_map = RPMap, x_g = x_coords, y_g = y_coords, aps_list = constants.aps,
+                    reduced = False, path="gifs")
+
+imutils.displayGif("gifs/GEOTECWIFI03.gif")
+```
+
+Se visualizaría el siguiente gif:
+
+![Gif AP](outputs/RPMap/rpmap_300_overlapping/gifs/GEOTECWIFI03.gif)
+
+
+
 
 ## Entrenamiento del modelo
 
