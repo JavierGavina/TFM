@@ -13,30 +13,30 @@ rpmap_300_sinOverlapping = constants.outputs.rpmap.rpmap_300_sinOverlapping
 rpmap_28_overlapping = constants.outputs.rpmap.rpmap_28_overlapping
 
 if __name__ == "__main__":
-    # print("creando directorios.........")
-    # os.makedirs(root_dir, exist_ok=True)
-    # os.makedirs(rpmap, exist_ok=True)
-    # os.makedirs(rpmap_300_overlapping, exist_ok=True)
-    # os.makedirs(rpmap_300_sinOverlapping, exist_ok=True)
-    # os.makedirs(rpmap_28_overlapping, exist_ok=True)
-    # for x in ["gifs", "imagenes"]:
-    #     os.makedirs(f"{rpmap_300_overlapping}/{x}", exist_ok=True)
-    #     os.makedirs(f"{rpmap_300_sinOverlapping}/{x}", exist_ok=True)
-    #     os.makedirs(f"{rpmap_28_overlapping}/{x}", exist_ok=True)
-    #
-    # print("cargando datos rpmap tamaño 300x300 sin overlapping.........")
-    # X_300_sin, y_300_sin, [x_coords_300_sin, y_coords_300_sin] = DataLoader(
-    #     data_dir=f"{constants.data.FINAL_PATH}/groundtruth.csv",
-    #     aps_list=constants.aps, batch_size=30, step_size=30,
-    #     size_reference_point_map=300,
-    #     return_axis_coords=True)()
-    #
-    # print("cargando datos rpmap tamaño 300x300 con overlapping.........")
-    # X_300_over, y_300_over, [x_coords_300_over, y_coords_300_over] = DataLoader(
-    #     data_dir=f"{constants.data.FINAL_PATH}/groundtruth.csv",
-    #     aps_list=constants.aps, batch_size=30, step_size=5,
-    #     size_reference_point_map=300,
-    #     return_axis_coords=True)()
+    print("creando directorios.........")
+    os.makedirs(root_dir, exist_ok=True)
+    os.makedirs(rpmap, exist_ok=True)
+    os.makedirs(rpmap_300_overlapping, exist_ok=True)
+    os.makedirs(rpmap_300_sinOverlapping, exist_ok=True)
+    os.makedirs(rpmap_28_overlapping, exist_ok=True)
+    for x in ["gifs", "imagenes"]:
+        os.makedirs(f"{rpmap_300_overlapping}/{x}", exist_ok=True)
+        os.makedirs(f"{rpmap_300_sinOverlapping}/{x}", exist_ok=True)
+        os.makedirs(f"{rpmap_28_overlapping}/{x}", exist_ok=True)
+
+    print("cargando datos rpmap tamaño 300x300 sin overlapping.........")
+    X_300_sin, y_300_sin, [x_coords_300_sin, y_coords_300_sin] = DataLoader(
+        data_dir=f"{constants.data.FINAL_PATH}/groundtruth.csv",
+        aps_list=constants.aps, batch_size=30, step_size=30,
+        size_reference_point_map=300,
+        return_axis_coords=True)()
+
+    print("cargando datos rpmap tamaño 300x300 con overlapping.........")
+    X_300_over, y_300_over, [x_coords_300_over, y_coords_300_over] = DataLoader(
+        data_dir=f"{constants.data.FINAL_PATH}/groundtruth.csv",
+        aps_list=constants.aps, batch_size=30, step_size=5,
+        size_reference_point_map=300,
+        return_axis_coords=True)()
 
     print("cargando datos rpmap tamaño 28x28 con overlapping.........")
     X_28_over, y_28_over, [x_coords_28_over, y_coords_28_over] = DataLoader(
