@@ -143,3 +143,12 @@ save_model = LoggingCheckpointTraining(save_dir=path_checkpoints)
 cgan = cGAN(generator=generator, discriminator=discriminator)
 cgan.fit(dataset, epochs=50, callbacks = [save_image, save_model])
 ```
+
+El proceso de entrenamiento lo podemos representar en un gif animado como sigue:
+
+![Gif AP](outputs/process_training/cGAN_28_28/gif/training_process.gif)
+
+
+
+
+
