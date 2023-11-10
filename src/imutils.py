@@ -62,7 +62,7 @@ def plotAllAP(reference_point_map: np.ndarray, labels: np.ndarray, aps_list: lis
         if samples_per_AP > 80:
             plt.figure(figsize=(20, 80), dpi=50)  # Creamos la figura
         else:
-            plt.figure(figsize=(20, 15), dpi=50) # Creamos la figura
+            plt.figure(figsize=(20, 15), dpi=50)  # Creamos la figura
         for idx in range(samples_per_AP):  # Iteramos sobre cada muestra
             plt.axis('off')
             plt.subplot(int(np.ceil(samples_per_AP / 7)), 7, idx + 1)  # Creamos un subplot para cada muestra
@@ -79,7 +79,8 @@ def plotAllAP(reference_point_map: np.ndarray, labels: np.ndarray, aps_list: lis
         plt.close()  # Cerramos la figura
 
 
-def save_ap_gif(reference_point_map: np.ndarray, x_g: np.ndarray, y_g: np.ndarray, aps_list: list, path="gifs"):
+def save_ap_gif(reference_point_map: np.ndarray, x_g: np.ndarray, y_g: np.ndarray, aps_list: list,
+                reduced: bool = False, path="gifs"):
     """
     Esta función se encarga de guardar un GIF para cada AP (wifi) con los mapas de referencia continua para cada instante de tiempo.
 
@@ -96,6 +97,9 @@ def save_ap_gif(reference_point_map: np.ndarray, x_g: np.ndarray, y_g: np.ndarra
 
     aps_list: list
         Lista de APs (wifi) a considerar para la generación del mapa de referencia continua
+
+    reduced: bool = False
+        Si es True, se reduce el tamaño de la figura y se aumenta el tamaño de los puntos
 
     path: str = "gifs"
         Ruta donde se guardarán los GIFs de los mapas de referencia continua para cada AP (wifi)
@@ -128,16 +132,28 @@ def save_ap_gif(reference_point_map: np.ndarray, x_g: np.ndarray, y_g: np.ndarra
     n_APs = len(aps_list)
     samples_per_AP = int(n_samples / n_APs)
 
+    if not reduced:
+        figsize = (15, 15)
+        fontsize = 20
+        markersize = 2
+
+    else:
+        figsize = (5, 5)
+        fontsize = 10
+        markersize = 3
+
     for id_ap, id2_ap in tqdm.tqdm(enumerate(range(0, n_samples, samples_per_AP))):
         ap = aps_list[id_ap]
         os.makedirs(f"{path}/temp/{ap}", exist_ok=True)
+
         for idx in range(samples_per_AP):
-            plt.figure(figsize=(15, 15))
-            plt.scatter(x_g, y_g, s=2, marker='o', c=reference_point_map[idx + id2_ap, :, :].flatten(), cmap="seismic", vmin=0,
+            plt.figure(figsize=figsize)
+            plt.scatter(x_g, y_g, s=markersize, marker='o', c=reference_point_map[idx + id2_ap, :, :].flatten(),
+                        cmap="seismic", vmin=0,
                         vmax=1)
-            plt.ylabel('Latitude', size=20)
-            plt.xlabel('Longitude', size=20)
-            plt.title(f"{ap}, t={idx}", fontsize=20)
+            plt.ylabel('Latitude', size=fontsize)
+            plt.xlabel('Longitude', size=fontsize)
+            plt.title(f"{ap}, t={idx}", fontsize=fontsize)
             cbar = plt.colorbar()
             cbar.set_label(f'RSS {ap}')
             ax = plt.gca()
