@@ -134,8 +134,8 @@ generator = define_generator(latent_dim=100)
 dataset = tf.data.Dataset.from_tensor_slices((X, y)).shuffle(1000).batch(8)
 
 # definición de callbacks
-path_images_training = f"../{constants.models.cgan_300}/training_images"
-path_checkpoints = f"../{constants.models.cgan_300}/checkpoints"
+path_images_training = f"{constants.outputs.models.cgan_300}/training_images"
+path_checkpoints = f"{constants.outputs.models.cgan_300}/checkpoints"
 save_image = SaveImageTraining(X, y, save_dir=path_images_training)
 save_model = LoggingCheckpointTraining(save_dir=path_checkpoints)
 

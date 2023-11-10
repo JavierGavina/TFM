@@ -1,16 +1,17 @@
+import os
+import sys
+import matplotlib.pyplot as plt
+
 import tensorflow as tf
 from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, Concatenate, Embedding, Conv2D, \
     Conv2DTranspose, LeakyReLU, BatchNormalization
 
-from callbacks import SaveImageTraining, LoggingCheckpointTraining
-import sys
 
 sys.path.append("../")
 from src import dataloader
 from src.constants import constants
+from models.callbacks import SaveImageTraining, LoggingCheckpointTraining
 import numpy as np
-from IPython.display import clear_output
-import os
 
 
 def define_discriminator(input_shape=(300, 300, 1), n_classes=7):
@@ -161,8 +162,7 @@ class cGAN(tf.keras.models.Model):
 
 
 if __name__ == "__main__":
-    tf.keras.models.load_model("")
-
+    tf.keras.backend.clear_session()
     X, y, _ = dataloader.DataLoader(data_dir=f"../{constants.data.FINAL_PATH}/groundtruth.csv",
                                     aps_list=constants.aps, batch_size=30, step_size=5,
                                     size_reference_point_map=300,
@@ -176,21 +176,25 @@ if __name__ == "__main__":
     os.makedirs(constants.outputs.models.training, exist_ok=True)
     os.makedirs(constants.outputs.models.cgan_300, exist_ok=True)
 
-    path_images_training = f"../{constants.models.cgan_300}/training_images"
-    path_checkpoints = f"../{constants.models.cgan_300}/checkpoints"
+    path_images_training = f"../{constants.outputs.models.cgan_300}/images_training"
+    path_checkpoints = f"../{constants.outputs.models.cgan_300}/checkpoints"
+    path_learning_curves = f"../{constants.outputs.models.cgan_300}/learning_curves"
 
     os.makedirs(path_images_training, exist_ok=True)
     os.makedirs(path_checkpoints, exist_ok=True)
+    os.makedirs(path_learning_curves, exist_ok=True)
 
     for latent_dim in [100, 300, 500, 700, 1000]:
         tf.keras.backend.clear_session()
 
-        # Definición de los directorios de salida de las imágenes y los checkpoints
+        # Definición de los directorios de salida de las imágenes, los checkpoints y las curvas de aprendizaje
         out_images = f"{path_images_training}/latent_dim={latent_dim}"
         out_checkpoints = f"{path_checkpoints}/latent_dim={latent_dim}"
+        out_learning_curves = f"{path_learning_curves}/latent_dim={latent_dim}"
 
         os.makedirs(out_images, exist_ok=True)
         os.makedirs(out_checkpoints, exist_ok=True)
+        os.makedirs(out_learning_curves, exist_ok=True)
 
         # definición del modelo
         discriminator = define_discriminator()
@@ -202,10 +206,17 @@ if __name__ == "__main__":
         save_model = LoggingCheckpointTraining(save_dir=out_checkpoints)
         decay_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='loss_g', factor=0.5, patience=5, min_lr=0.00001)
         hist = tf.keras.callbacks.History()
-        early_stop = tf.keras.callbacks.EarlyStopping(monitor='loss_g', patience=10, restore_best_weights=True)
 
         # Compilación y entrenamiento del modelo
-        gan.compile(tf.keras.optimizers.Adam(learning_rate=0.01, beta_1=0.5, clipnorm=1.0),
-                    tf.keras.optimizers.Adam(learning_rate=0.01, beta_1=0.5),
+        gan.compile(tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.5, clipnorm=1.0),
+                    tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.5),
                     tf.keras.losses.BinaryCrossentropy(), tf.keras.losses.BinaryCrossentropy())
-        gan.fit(dataset, epochs=50, callbacks=[hist, save_image, save_model, decay_lr, early_stop])
+        gan.fit(dataset, epochs=50, callbacks=[hist, save_image, save_model, decay_lr])
+
+        # Curvas de aprendizaje
+        plt.plot(hist.history["loss_d"], label="loss_d")
+        plt.plot(hist.history["loss_g"], label="loss_g")
+        plt.title("Curvas de aprendizaje")
+        plt.legend()
+        plt.savefig(f"{out_learning_curves}/learning_curves.png")
+        plt.close()

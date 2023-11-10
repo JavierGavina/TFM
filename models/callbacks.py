@@ -56,11 +56,12 @@ class SaveImageTraining(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         # Labels for generated images
         n = len(np.unique(self.y))
+        [rows, cols, channels] = self.X.shape[1:]
         latent_dim = self.model.generator.input_shape[0][1]
         labels = np.expand_dims(np.array([x for _ in range(n) for x in range(3)]), axis=-1)
         noise_input = np.random.randn(latent_dim * n * 3).reshape(n * 3, latent_dim)
         fake_img = self.model.generator([noise_input, labels], training=False)
-        real_img = np.zeros((n, 300, 300))
+        real_img = np.zeros((n, rows, cols))
         random_idx = np.random.randint(0, self.X.shape[0] / n)
         for label in range(n):
             real_img[label] = self.X[np.where(self.y == label)[0], :, :, 0][random_idx]
