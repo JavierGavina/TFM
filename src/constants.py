@@ -20,12 +20,22 @@ class Directories:
     FINAL_PATH = "data/final_groundtruth"  # Datos unidos
 
 
+class Architectures:
+    """
+    Clase que contiene las constantes de los directorios de las arquitecturas de los modelos
+    """
+    arquitectures = "outputs/model_architecture"
+    cgan_300 = f"{arquitectures}/cGAN_300_300"
+    cgan_28 = f"{arquitectures}/cGAN_28_28"
+
+
 class Models:
     """
     Clase que contiene las constantes de los directorios de los modelos del proyecto
     """
     training = "outputs/process_training"
     cgan_300 = "outputs/process_training/cGAN_300_300"
+    cgan_28 = "outputs/process_training/cGAN_28_28"
 
 
 class RPMAP:
@@ -50,6 +60,7 @@ class Outputs:
 
     models = Models()
     rpmap = RPMAP()
+    architectures = Architectures()
 
 
 class constants:
