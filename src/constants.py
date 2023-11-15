@@ -20,6 +20,23 @@ class Directories:
     FINAL_PATH = "data/final_groundtruth"  # Datos unidos
 
 
+class Positioning:
+    """
+    Clase que contiene las constantes de los outputs de posicionamiento del proyecto
+
+    Attributes:
+    ___________
+        POSITIONING: str
+            La dirección de los modelos de posicionamiento
+        POSITIONING_ESTIMATION: str
+            La dirección de los modelos de estimación de posicionamiento
+    """
+    positioning_path = "outputs/positioning"
+    line_plot_metrics = f"{positioning_path}/line_plots_metrics"
+    positioning_estimation = f"{positioning_path}/estimation"
+    preds_vs_true = f"{positioning_path}/preds_vs_true"
+
+
 class Architectures:
     """
     Clase que contiene las constantes de los directorios de las arquitecturas de los modelos
@@ -61,6 +78,7 @@ class Outputs:
     models = Models()
     rpmap = RPMAP()
     architectures = Architectures()
+    positioning = Positioning()
 
 
 class constants:
