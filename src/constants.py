@@ -32,9 +32,10 @@ class Positioning:
             La dirección de los modelos de estimación de posicionamiento
     """
     positioning_path = "outputs/positioning"
-    line_plot_metrics = f"{positioning_path}/line_plots_metrics"
-    positioning_estimation = f"{positioning_path}/estimation"
-    preds_vs_true = f"{positioning_path}/preds_vs_true"
+    without_rpmap = f"{positioning_path}/without_rpmap"
+    rpmap = f"{positioning_path}/rpmap"
+    rpmap_data_augmentation = f"{positioning_path}/rpmap_data_augmentation"
+
 
 
 class Architectures:
