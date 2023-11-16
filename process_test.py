@@ -1,11 +1,17 @@
-import os, tqdm
+import os
+import tqdm
 
 import pandas as pd
+
 from src.constants import constants
 from src.preprocess import correctMetrics, correctWifiFP, read_checkpoint
 
+import warnings
+
+warnings.filterwarnings("ignore")
+
 # Definición de las constantes de los directorios
-CHECKPOINT_DATA_PATH = constants.data.train.CHECKPOINT_DATA_PATH
+CHECKPOINT_DATA_PATH = constants.data.test.CHECKPOINT_DATA_PATH
 ACCELEROMETER_CHECKPOINT = f"{CHECKPOINT_DATA_PATH}/Accelerometer"
 MAGNETOMETER_CHECKPOINT = f"{CHECKPOINT_DATA_PATH}/Magnetometer"
 GYROSCOPE_CHECKPOINT = f"{CHECKPOINT_DATA_PATH}/Gyroscope"
@@ -15,18 +21,18 @@ WIFI_CHECKPOINT = f"{CHECKPOINT_DATA_PATH}/Wifi"
 lista_ssid_candidatos = constants.aps
 
 # Tiempo maximo de muestreo por label
-t_max_sampling = constants.T_MAX_SAMPLING
+t_max_sampling = constants.T_MAX_SAMPLING_TEST
 
 # Diccionario de labels a metros
-labels_dictionary_meters = constants.labels_dictionary_meters
+labels_dictionary_meters = constants.labels_dictionary_meters_test
 
 
 def main():
-    os.makedirs(CHECKPOINT_DATA_PATH, exist_ok=True) # Este código lo ejecutamos una vez y lo comentamos
-    os.makedirs(ACCELEROMETER_CHECKPOINT, exist_ok=True) # Este código lo ejecutamos una vez y lo comentamos
-    os.makedirs(GYROSCOPE_CHECKPOINT, exist_ok=True) # Este código lo ejecutamos una vez y lo comentamos
-    os.makedirs(MAGNETOMETER_CHECKPOINT, exist_ok=True) # Este código lo ejecutamos una vez y lo comentamos
-    os.makedirs(WIFI_CHECKPOINT, exist_ok=True) # Este código lo ejecutamos una vez y lo comentamos
+    os.makedirs(CHECKPOINT_DATA_PATH, exist_ok=True)  # Este código lo ejecutamos una vez y lo comentamos
+    os.makedirs(ACCELEROMETER_CHECKPOINT, exist_ok=True)  # Este código lo ejecutamos una vez y lo comentamos
+    os.makedirs(GYROSCOPE_CHECKPOINT, exist_ok=True)  # Este código lo ejecutamos una vez y lo comentamos
+    os.makedirs(MAGNETOMETER_CHECKPOINT, exist_ok=True)  # Este código lo ejecutamos una vez y lo comentamos
+    os.makedirs(WIFI_CHECKPOINT, exist_ok=True)  # Este código lo ejecutamos una vez y lo comentamos
 
     # Lectura del dataset de cada label
     for label, position in tqdm.tqdm(labels_dictionary_meters.items()):
@@ -46,7 +52,7 @@ def main():
                 columns=['AppTimestamp(s)', 'SensorTimeStamp(s)', 'Name_SSID', 'MAC_BSSID', 'RSS'])
 
             # Lectura de los datos de cada label
-            with open(f'{constants.data.train.DATA_DIR}/label_{label}.txt', 'r') as fich:
+            with open(f'{constants.data.test.DATA_DIR}/label_{label}.txt', 'r') as fich:
                 for linea in fich.readlines():  # Leemos línea
                     texto = linea.rstrip("\n").split(";")  # Quitamos saltos de línea y separamos por ";"
 
@@ -77,17 +83,22 @@ def main():
                                                     })], ignore_index=True)
 
                     if texto[0] == "MAGN":  # Si el primer elemento es ACCE, añadimos datos al acelerómetro
-                        magnetometer_data = pd.concat([magnetometer_data,
-                                                       pd.DataFrame({
-                                                           "AppTimestamp(s)": [float(texto[1])],
-                                                           "SensorTimestamp(s)": [float(texto[2])],
-                                                           "Mag_X": [float(texto[3])],
-                                                           "Mag_Y": [float(texto[4])],
-                                                           "Mag_Z": [float(texto[5])],
-                                                           "Label": [label],
-                                                           "Latitude": [position[1]],
-                                                           "Longitude": [position[0]]
-                                                       })], ignore_index=True)
+                        # Por alguna razón hay una linea en el label 8 donde no hay recogida de datos en el magnetómetro y da error por lo que lo controlamos con un try
+                        try:
+                            magnetometer_data = pd.concat([magnetometer_data,
+                                                           pd.DataFrame({
+                                                               "AppTimestamp(s)": [float(texto[1])],
+                                                               "SensorTimestamp(s)": [float(texto[2])],
+                                                               "Mag_X": [float(texto[3])],
+                                                               "Mag_Y": [float(texto[4])],
+                                                               "Mag_Z": [float(texto[5])],
+                                                               "Label": [label],
+                                                               "Latitude": [position[1]],
+                                                               "Longitude": [position[0]]
+                                                           })], ignore_index=True)
+                        except:
+                            print("Error en la lectura de la línea:")
+                            print(texto)
 
                     if texto[0] == "WIFI":  # Si el primer elemento es ACCE, añadimos datos al acelerómetro
                         wifi_data = pd.concat([wifi_data,
@@ -114,7 +125,7 @@ def main():
     gyroscope_data = read_checkpoint(GYROSCOPE_CHECKPOINT)
     wifi_data = read_checkpoint(WIFI_CHECKPOINT)
 
-    os.makedirs(constants.data.train.MID_PATH, exist_ok=True)  # Creamos el directorio si no existe
+    os.makedirs(constants.data.test.MID_PATH, exist_ok=True)  # Creamos el directorio si no existe
 
     accelerometer_data = correctMetrics(data=accelerometer_data,
                                         columns_to_correct=constants.accelerometer_cols,
@@ -136,15 +147,15 @@ def main():
                               dict_labels_to_meters=constants.labels_dictionary_meters)  # Corregimos el WiFi
 
     # Guardamos los datos corregidos
-    accelerometer_data.to_csv(f"{constants.data.train.MID_PATH}/accelerometer.csv", index=False)
-    magnetometer_data.to_csv(f"{constants.data.train.MID_PATH}/magnetometer.csv", index=False)
-    gyroscope_data.to_csv(f"{constants.data.train.MID_PATH}/gyroscope.csv", index=False)
-    wifi_data.to_csv(f"{constants.data.train.MID_PATH}/wifi.csv", index=False)
+    accelerometer_data.to_csv(f"{constants.data.test.MID_PATH}/accelerometer.csv", index=False)
+    magnetometer_data.to_csv(f"{constants.data.test.MID_PATH}/magnetometer.csv", index=False)
+    gyroscope_data.to_csv(f"{constants.data.test.MID_PATH}/gyroscope.csv", index=False)
+    wifi_data.to_csv(f"{constants.data.test.MID_PATH}/wifi.csv", index=False)
 
     '''
     Juntamos todos los datos y los guardamos en el path del acelerómetro
     '''
-    os.makedirs(constants.data.train.FINAL_PATH, exist_ok=True)  # Creamos el directorio si no existe
+    os.makedirs(constants.data.test.FINAL_PATH, exist_ok=True)  # Creamos el directorio si no existe
     cols_to_join = ["AppTimestamp(s)", "Latitude", "Longitude", "Label"]  # Columnas en común cada dataset
     order_of_columns = ["AppTimestamp(s)"] + \
                        constants.aps + constants.accelerometer_cols + \
@@ -159,7 +170,7 @@ def main():
                            on=cols_to_join, how="left")[order_of_columns]
 
     # guardamos el dataset final
-    joined_data.to_csv(f"{constants.data.train.FINAL_PATH}/groundtruth.csv", index=False)
+    joined_data.to_csv(f"{constants.data.test.FINAL_PATH}/groundtruth.csv", index=False)
 
 
 if __name__ == "__main__":
