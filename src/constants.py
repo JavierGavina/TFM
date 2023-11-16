@@ -1,4 +1,4 @@
-class Directories:
+class Train:
     """
     Clase que contiene las constantes de los directorios del proyecto
 
@@ -14,10 +14,47 @@ class Directories:
             Datos unidos
     """
     # Definición de las constantes
-    DATA_DIR = "data/raw_groundtruth"  # La dirección de los datos extendida
-    CHECKPOINT_DATA_PATH = "data/checkpoint_groundtruth"
-    MID_PATH = "data/mid_groundtruth"  # La dirección de salida de cada dataset (metricas y wifi)
-    FINAL_PATH = "data/final_groundtruth"  # Datos unidos
+    DATA_DIR = "data/train/raw_groundtruth"  # La dirección de los datos extendida
+    CHECKPOINT_DATA_PATH = "data/train/checkpoint_groundtruth"
+    MID_PATH = "data/train/mid_groundtruth"  # La dirección de salida de cada dataset (metricas y wifi)
+    FINAL_PATH = "data/train/final_groundtruth"  # Datos unidos
+
+
+class Test:
+    """
+    Clase que contiene las constantes de los directorios del proyecto
+
+    Attributes:
+    ___________
+        DATA_DIR: str
+            La dirección de los datos en bruto (formato .txt)
+        CHECKPOINT_DATA_PATH: str
+            La dirección de los datos del checkpoint de cada métrica y wifi
+        MID_PATH: str
+            La dirección de salida de cada dataset (metricas y wifi)
+        FINAL_PATH: str
+            Datos unidos
+    """
+    # Definición de las constantes
+    DATA_DIR = "data/test/raw_groundtruth"  # La dirección de los datos extendida
+    CHECKPOINT_DATA_PATH = "data/test/checkpoint_groundtruth"
+    MID_PATH = "data/test/mid_groundtruth"  # La dirección de salida de cada dataset (metricas y wifi)
+    FINAL_PATH = "data/test/final_groundtruth"  # Datos unidos
+
+
+class Directories:
+    """
+    Clase que contiene las constantes de los directorios del proyecto
+
+    Attributes:
+    ___________
+        train: Train
+            Clase que contiene las constantes de los directorios de los datos de entrenamiento
+        test: Test
+            Clase que contiene las constantes de los directorios de los datos de testeo
+    """
+    train = Train()
+    test = Test()
 
 
 class Positioning:
@@ -35,7 +72,6 @@ class Positioning:
     without_rpmap = f"{positioning_path}/without_rpmap"
     rpmap = f"{positioning_path}/rpmap"
     rpmap_data_augmentation = f"{positioning_path}/rpmap_data_augmentation"
-
 
 
 class Architectures:
@@ -106,7 +142,8 @@ class constants:
             Clase que contiene las constantes de los directorios de todas las salidas del proyecto
     """
 
-    T_MAX_SAMPLING = 1140  # Número de segundos máximo de recogida de muestras por cada Reference Point
+    T_MAX_SAMPLING = 1140  # Número de segundos máximo de recogida de muestras por cada Reference Point en TRAIN
+    T_MAX_SAMPLING_TEST = 60  # Número de segundos máximo de recogida de muestras por cada Reference Point en TEST
 
     dictionary_decoding = {
         0: "GEOTECWIFI03", 1: "480Invitados",
@@ -115,14 +152,12 @@ class constants:
         6: "UJI"
     }
 
-    data = Directories()
-
     aps = ['GEOTECWIFI03', '480Invitados', 'eduroam', 'wpen-uji', 'lt1iot', 'cuatroochenta', 'UJI']
     magnetometer_cols = ["Mag_X", "Mag_Y", "Mag_Z"]
     accelerometer_cols = ["Acc_X", "Acc_Y", "Acc_Z"]
     gyroscope_cols = ["Gyr_X", "Gyr_Y", "Gyr_Z"]
 
-    # Diccionario que transforma el label a (longitud, latitud) en metros
+    # Diccionario que transforma el label a (longitud, latitud) en metros TRAIN
     labels_dictionary_meters = {
         0: (0.6, 0), 1: (5.4, 0), 2: (9, 0),
         3: (9, 3), 4: (6, 3), 5: (3, 3),
@@ -134,4 +169,15 @@ class constants:
         21: (3, 14.4), 22: (0, 14.4)
     }
 
+    # Diccionario que transforma el label a (longitud, latitud) en metros TEST
+    labels_dictionary_meters_test = {
+        0: (3.6, 0), 1: (7.2, 0), 2: (9, 1.2),
+        3: (7.2, 3), 4: (4.2, 3), 5: (1.8, 3),
+        6: (2.4, 4.2), 7: (7.8, 4.2), 8: (9., 6.6),
+        9: (4.8, 7.8), 10: (1.8, 7.8), 11: (0, 9),
+        12: (1.8, 10.2), 13: (6.6, 10.2), 14: (8.4, 10.8),
+        15: (5.4, 13.8), 16: (1.2, 13.2)
+    }
+
+    data = Directories()
     outputs = Outputs()

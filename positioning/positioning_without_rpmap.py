@@ -13,7 +13,7 @@ from positioning import utils
 
 if __name__ == "__main__":
     # POSITIONING WITHOUT RPMAP
-    groundtruth = pd.read_csv(f"../{constants.data.FINAL_PATH}/groundtruth.csv")
+    groundtruth = pd.read_csv(f"../{constants.data.train.FINAL_PATH}/groundtruth.csv")
     X = groundtruth[constants.aps].to_numpy()
     y = groundtruth[["Longitude", "Latitude"]].to_numpy()
 

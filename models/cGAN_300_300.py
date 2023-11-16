@@ -163,7 +163,7 @@ class cGAN(tf.keras.models.Model):
 
 if __name__ == "__main__":
     tf.keras.backend.clear_session()
-    X, y, _ = dataloader.DataLoader(data_dir=f"../{constants.data.FINAL_PATH}/groundtruth.csv",
+    X, y, _ = dataloader.DataLoader(data_dir=f"../{constants.data.train.FINAL_PATH}/groundtruth.csv",
                                     aps_list=constants.aps, batch_size=30, step_size=5,
                                     size_reference_point_map=300,
                                     return_axis_coords=False)()

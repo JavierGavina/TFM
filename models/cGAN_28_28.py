@@ -76,7 +76,7 @@ def define_generator(latent_dim=100, n_classes=7):
 
 
 if __name__ == "__main__":
-    get_data = dataloader.DataLoader(data_dir=f"../{constants.data.FINAL_PATH}/groundtruth.csv",
+    get_data = dataloader.DataLoader(data_dir=f"../{constants.data.train.FINAL_PATH}/groundtruth.csv",
                                      aps_list=constants.aps, batch_size=30, step_size=5,
                                      size_reference_point_map=28,
                                      return_axis_coords=False)

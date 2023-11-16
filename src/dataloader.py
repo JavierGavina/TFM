@@ -7,7 +7,7 @@ import sys
 sys.path.append("../")
 
 from src.constants import constants
-from process_groundTruth import interpolacionConcatenada
+from process_train import interpolacionConcatenada
 
 
 warnings.filterwarnings('ignore')

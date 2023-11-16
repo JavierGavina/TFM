@@ -1,9 +1,7 @@
 from src.constants import constants
-from src.dataloader import parse_windows
 from src.dataloader import DataLoader
 from src.imutils import plotAllAP, save_ap_gif
-import numpy as np
-import matplotlib.pyplot as plt
+
 import os
 
 root_dir = constants.outputs.PATH_OUTPUTS
@@ -26,21 +24,21 @@ if __name__ == "__main__":
 
     print("cargando datos rpmap tamaño 300x300 sin overlapping.........")
     X_300_sin, y_300_sin, [x_coords_300_sin, y_coords_300_sin] = DataLoader(
-        data_dir=f"{constants.data.FINAL_PATH}/groundtruth.csv",
+        data_dir=f"{constants.data.train.FINAL_PATH}/groundtruth.csv",
         aps_list=constants.aps, batch_size=30, step_size=30,
         size_reference_point_map=300,
         return_axis_coords=True)()
 
     print("cargando datos rpmap tamaño 300x300 con overlapping.........")
     X_300_over, y_300_over, [x_coords_300_over, y_coords_300_over] = DataLoader(
-        data_dir=f"{constants.data.FINAL_PATH}/groundtruth.csv",
+        data_dir=f"{constants.data.train.FINAL_PATH}/groundtruth.csv",
         aps_list=constants.aps, batch_size=30, step_size=5,
         size_reference_point_map=300,
         return_axis_coords=True)()
 
     print("cargando datos rpmap tamaño 28x28 con overlapping.........")
     X_28_over, y_28_over, [x_coords_28_over, y_coords_28_over] = DataLoader(
-        data_dir=f"{constants.data.FINAL_PATH}/groundtruth.csv",
+        data_dir=f"{constants.data.train.FINAL_PATH}/groundtruth.csv",
         aps_list=constants.aps, batch_size=30, step_size=5,
         size_reference_point_map=28,
         return_axis_coords=True)()
