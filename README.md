@@ -158,4 +158,6 @@ Para el conjunto de entrenamiento, en cada uno de los 23 Reference Points, se re
 
 Podemos ver la representación de los puntos de referencia de entrenamiento y los puntos de referencia de test en la siguiente imagen:
 
+![Imagen AP](figs/coords_train_test.png)
+
 
