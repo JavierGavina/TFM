@@ -30,7 +30,7 @@ Una de las operaciones realizadas en los datos como preprocesamiento consiste en
    2) Se interpola la señal RSSI en cada Reference Point para obtener un mapa continuo, con RSS para todo punto (latitud, longitud) del mapa
    3) Se interpolan datos ausentes resultado de la interpolación anterior
 
-![Imagen izquierda: Media RSS de una AP en todo un intervalo temporal para cada punto discreto anotado (Latitud, Longitud). Imagen central: Interpolación valores RSS para todo punto (latitud, longitud). Imagen derecha: Interpolación valores ausentes de la interpolación anterior](rpmap_disc_cont_inter.png)
+![Imagen izquierda: Media RSS de una AP en todo un intervalo temporal para cada punto discreto anotado (Latitud, Longitud). Imagen central: Interpolación valores RSS para todo punto (latitud, longitud). Imagen derecha: Interpolación valores ausentes de la interpolación anterior](figs/rpmap_disc_cont_inter.png)
 
 Imagen izquierda: Media RSS de una AP en todo un intervalo temporal para cada punto discreto anotado (Latitud, Longitud). Imagen central: Interpolación valores RSS para todo punto (latitud, longitud). Imagen derecha: Interpolación valores ausentes de la interpolación anterior
 
@@ -102,7 +102,7 @@ Se visualizaría el siguiente gif:
 
 
 
-## Entrenamiento del modelo
+## Entrenamiento de cGAN para aumento de datos
 
 Para entrenar el modelo, ya se encuentra definido el tipo de modelo cGAN a utilizar dentro de **models**. Además, se encuentran definidos una serie de **callbacks**
  customizados para utilizar en el proceso de entrenamiento de la cGAN dentro del mismo directorio. Entre ellos tenemos definido:
@@ -150,5 +150,12 @@ El proceso de entrenamiento lo podemos representar en un gif animado como sigue:
 
 
 
+## Datos
+
+Se realizó una recogida de datos en el edificio de espaitec en el Instituto de las Nuevas Tecnologías de la Imagen (INIT), en la Universitat de Jaume I. Se recogieron datos utilizando 7 APs en 23 puntos de referencia de la misma sala para el conjunto de entrenamiento. Los datos se recogieron y 17 puntos de referencia para el conjunto de test.
+
+Para el conjunto de entrenamiento, en cada uno de los 23 Reference Points, se recogieron 1140 segundos de datos, mientras que con el conjunto de test se recogieron 60 segundos de datos en los 17 reference points, cada uno con unas coordenadas (longitud, latitud) distintas que en el conjunto de entrenamiento.
+
+Podemos ver la representación de los puntos de referencia de entrenamiento y los puntos de referencia de test en la siguiente imagen:
 
 
