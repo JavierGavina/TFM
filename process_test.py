@@ -130,26 +130,22 @@ def main():
     accelerometer_data = correctMetrics(data=accelerometer_data,
                                         columns_to_correct=constants.accelerometer_cols,
                                         t_max_sampling=t_max_sampling,
-                                        dict_labels_to_meters=constants.labels_dictionary_meters)  # Corregimos el acelerómetro
+                                        dict_labels_to_meters=labels_dictionary_meters)  # Corregimos el acelerómetro
 
     magnetometer_data = correctMetrics(data=magnetometer_data,
                                        columns_to_correct=constants.magnetometer_cols,
                                        t_max_sampling=t_max_sampling,
-                                       dict_labels_to_meters=constants.labels_dictionary_meters)  # Corregimos el magnetómetro
+                                       dict_labels_to_meters=labels_dictionary_meters)  # Corregimos el magnetómetro
 
     gyroscope_data = correctMetrics(data=gyroscope_data,
                                     columns_to_correct=constants.gyroscope_cols,
                                     t_max_sampling=t_max_sampling,
-                                    dict_labels_to_meters=constants.labels_dictionary_meters)  # Corregimos el giroscopio
+                                    dict_labels_to_meters=labels_dictionary_meters)  # Corregimos el giroscopio
 
     wifi_data = correctWifiFP(wifi_data=wifi_data,
                               t_max_sampling=t_max_sampling,
-                              dict_labels_to_meters=constants.labels_dictionary_meters)  # Corregimos el WiFi
+                              dict_labels_to_meters=labels_dictionary_meters)  # Corregimos el WiFi
 
-    # Guardamos los datos corregidos
-    accelerometer_data.to_csv(f"{constants.data.test.MID_PATH}/accelerometer.csv", index=False)
-    magnetometer_data.to_csv(f"{constants.data.test.MID_PATH}/magnetometer.csv", index=False)
-    gyroscope_data.to_csv(f"{constants.data.test.MID_PATH}/gyroscope.csv", index=False)
     wifi_data.to_csv(f"{constants.data.test.MID_PATH}/wifi.csv", index=False)
 
     '''

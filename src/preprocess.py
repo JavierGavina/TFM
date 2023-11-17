@@ -47,7 +47,7 @@ def correctWifiFP(wifi_data: pd.DataFrame, t_max_sampling: int, dict_labels_to_m
 
     # Creamos un dataframe con todos los intervalos de tiempo y todas las balizas
     labels, intervalos_tiempo, ssids = [], [], []
-    for lab in range(23):
+    for lab in range(len(dict_labels_to_meters)):
         for ts in range(0, t_max_sampling + 1, 1):
             for ssid in constants.aps:
                 labels.append(lab)
@@ -56,20 +56,18 @@ def correctWifiFP(wifi_data: pd.DataFrame, t_max_sampling: int, dict_labels_to_m
     df_intervalos = pd.DataFrame(
         {'Label': labels, 'AppTimestamp(s)': intervalos_tiempo, 'Name_SSID': ssids})  # Dataframe de intervalos
 
-    # Ajuste de frecuencia muestral a 1 muestra / segundo
-    min_global = aux.RSS.min() - 1  # Valor mínimo de RSS
-    max_global = np.abs(np.max(aux.RSS.max()))  # Valor máximo de RSS
     aux["AppTimestamp(s)"] = aux["AppTimestamp(s)"].round()  # Redondeamos el timestamp a 0 decimales
     aux = aux.groupby(["Label", "AppTimestamp(s)", "Name_SSID"]).mean()[
         "RSS"].reset_index()  # Agrupamos por label, timestamp y ssid
     aux_corrected = pd.merge(df_intervalos, aux, on=["Label", "AppTimestamp(s)", "Name_SSID"],
                              how="left")  # Unimos con el dataframe de intervalos
-    aux_corrected["RSS"] = aux_corrected.RSS.replace(np.nan,
-                                                     min_global)  # Reemplazamos los valores ausentes por el mínimo global
-    aux_corrected = aux_corrected.pivot(index=['Label', 'AppTimestamp(s)'], columns='Name_SSID')[
-        "RSS"].reset_index()  # Pivotamos el dataframe
-    aux_corrected.iloc[:, 2:] = (aux_corrected.iloc[:,
-                                 2:] - min_global) / max_global  # Escalamos los valores entre 0 y 1
+    # Reemplazamos los valores ausentes por el mínimo global
+    aux_corrected = aux_corrected.pivot(index=['Label', 'AppTimestamp(s)'], columns='Name_SSID')["RSS"].reset_index()  # Pivotamos el dataframe
+
+    # Reescalado de valores entre 0 y 1
+    aux_corrected[constants.aps] -= aux_corrected[constants.aps].min().min() - 1
+    aux_corrected[constants.aps] = aux_corrected[constants.aps].fillna(0)
+    aux_corrected[constants.aps] /= aux_corrected[constants.aps].max().max()
     aux_corrected[["Longitude", "Latitude"]] = [dict_labels_to_meters[x] for x in
                                                 aux_corrected.Label]  # Añadimos la longitud y latitud
     orden_wifi_columnas = ["AppTimestamp(s)"] + \
