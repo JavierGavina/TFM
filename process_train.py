@@ -32,6 +32,7 @@ def main():
     for label, position in tqdm.tqdm(labels_dictionary_meters.items()):
         # Si no existe el checkpoint con el label, lo creamos
         if str(label) not in ", ".join(os.listdir(ACCELEROMETER_CHECKPOINT)):
+            print(f"Creando checkpoint de label: {label}...")
             # Inicialización datasets métricas y WiFi
             accelerometer_data = pd.DataFrame(
                 columns=["AppTimestamp(s)", "SensorTimestamp(s)", "Acc_X", "Acc_Y", "Acc_Z", "Label", "Latitude",
