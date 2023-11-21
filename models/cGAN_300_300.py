@@ -6,7 +6,6 @@ import tensorflow as tf
 from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, Concatenate, Embedding, Conv2D, \
     Conv2DTranspose, LeakyReLU, BatchNormalization
 
-
 sys.path.append("../")
 from src import dataloader
 from src.constants import constants
@@ -159,6 +158,28 @@ class cGAN(tf.keras.models.Model):
         self.opt_g.apply_gradients(zip(ggrad, self.generator.trainable_variables))
 
         return {"loss_d": total_loss_d, "loss_g": total_loss_g}
+
+
+class DataAugmentation:
+    def __init__(self, path_to_generator):
+        self.generator = self.get_model(path_to_generator)
+
+    @staticmethod
+    def get_model(path_to_generator):
+        return tf.keras.models.load_model(path_to_generator)
+
+    @staticmethod
+    def reescale_output(output):
+        maximum, minimum = np.max(output), np.min(output)
+        return (output - minimum) / (maximum - minimum)
+
+    def __call__(self, n_samples_per_label: int = 223):
+        n_classes = len(constants.aps)
+        noise_input = np.random.normal(0, 1, size=[n_samples_per_label * n_classes, 100])
+        input_labels = np.repeat(np.arange(0, n_classes), n_samples_per_label).reshape(-1, 1)
+        generated = self.generator.predict([noise_input, input_labels])[:, :, :, 0]
+        generated = self.reescale_output(generated)
+        return generated, input_labels
 
 
 if __name__ == "__main__":

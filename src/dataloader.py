@@ -7,7 +7,7 @@ import sys
 sys.path.append("../")
 
 from src.constants import constants
-from src.preprocess import interpolacionConcatenada
+from src.preprocess import interpolacionConcatenada, interpolacion_pixel_proximo
 
 
 warnings.filterwarnings('ignore')
@@ -260,6 +260,61 @@ def labelDecoding(labels: np.ndarray) -> np.ndarray:
     return categoricLabels
 
 
+def get_radiomap_from_rpmap(rpmap, x_coords, y_coords):
+    """
+    Esta función coge los datos en mapa de referencia continuo y los transforma a radiomap.
+
+    Parameters:
+    -----------
+    rpmap: np.ndarray
+        Matriz con los valores del RSS de cada AP (wifi) para toda latitud y longitud en el espacio de muestreo
+
+    x_coords: np.ndarray
+        Coordenadas longitud continuas del mapa de referencia continua
+
+    y_coords: np.ndarray
+        Coordenadas latitud continuas del mapa de referencia continua
+
+    Returns:
+    --------
+    radiomap_extended: pd.DataFrame
+        DataFrame con los valores del RSS de cada AP (wifi) para cada coordenada x e y en el espacio de muestreo
+
+    Examples:
+    ---------
+    Obtención del rpmap y coordenadas
+
+    >>> dataloader = DataLoader(data_dir=f"{constants.data.FINAL_PATH}/groundtruth.csv",
+                                aps_list=constants.aps, batch_size=30, step_size=5,
+                                size_reference_point_map=28,
+                                return_axis_coords=True)
+    >>> X, _, [x_coords, y_coords] = dataloader()
+
+    >>> rpmap = X[:,:,:,0]
+
+    Obtenemos el radiomap utilizando el mapa de referencia de mallado continuo y las coordenadas de muestreo
+
+    >>> radiomap = get_radiomap_from_rpmap(rpmap, x_coords, y_coords)
+    """
+    # contantes para la operación de transformación a radiomap
+    samples_per_RP = int(rpmap.shape[0]/len(constants.aps)) # 223 instancias temporales por cada ap
+    size_map = rpmap.shape[1] # 28x28 puntos de referencia
+    radiomap = np.zeros((samples_per_RP*size_map*size_map, len(constants.aps)+2)) # 174832 filas, 7 columnas wifi + 2 columnas coordenadas
+    count = 0 # inicializamos el contador de filas
+    rpmap_flatten = rpmap.reshape(int(rpmap.shape[0]), size_map*size_map) # aplanamos cada mapa de referencia
+
+    for batch in range(samples_per_RP): # para cada instancia temporal
+        for idx_coord, (x, y) in enumerate(zip(x_coords, y_coords)): # para cada coordenada
+            for n_ap in range(len(constants.aps)): # para cada ap
+                radiomap[count, n_ap] = rpmap_flatten[batch+n_ap*samples_per_RP, idx_coord] # guardamos el valor de la señal wifi en la fila correspondiente
+            radiomap[count, len(constants.aps)] = x # guardamos la coordenada x
+            radiomap[count, len(constants.aps)+1] = y # guardamos la coordenada y
+            count += 1 # incrementamos el contador de filas
+
+    radiomap_extended = pd.DataFrame(radiomap, columns=constants.aps+["Longitude", "Latitude"]) # convertimos a dataframe
+    return radiomap_extended
+
+
 class DataLoader:
     """
     Esta clase se encarga de cargar los datos de los mapas de referencia continua para cada AP (wifi) y sus etiquetas.
@@ -335,7 +390,8 @@ class DataLoader:
                       constants.gyroscope_cols + constants.magnetometer_cols + ["Latitude", "Longitude", "Label"]
 
         groundtruth = groundtruth[new_columns]
-        groundtruth_interpolated = interpolacionConcatenada(groundtruth)
+        print("Interpolando datos con píxel más próximo si son coincidentes")
+        groundtruth_interpolated = interpolacion_pixel_proximo(groundtruth, threshold=30)
         return groundtruth_interpolated
 
     def __call__(self, *args, **kwargs):

@@ -5,6 +5,8 @@ import os
 import glob
 import sys
 
+from tqdm import tqdm
+
 sys.path.append("..")
 from src.constants import constants
 
@@ -62,7 +64,8 @@ def correctWifiFP(wifi_data: pd.DataFrame, t_max_sampling: int, dict_labels_to_m
     aux_corrected = pd.merge(df_intervalos, aux, on=["Label", "AppTimestamp(s)", "Name_SSID"],
                              how="left")  # Unimos con el dataframe de intervalos
     # Reemplazamos los valores ausentes por el mínimo global
-    aux_corrected = aux_corrected.pivot(index=['Label', 'AppTimestamp(s)'], columns='Name_SSID')["RSS"].reset_index()  # Pivotamos el dataframe
+    aux_corrected = aux_corrected.pivot(index=['Label', 'AppTimestamp(s)'], columns='Name_SSID')[
+        "RSS"].reset_index()  # Pivotamos el dataframe
 
     # Reescalado de valores entre 0 y 1
     aux_corrected[constants.aps] -= aux_corrected[constants.aps].min().min() - 1
@@ -78,7 +81,8 @@ def correctWifiFP(wifi_data: pd.DataFrame, t_max_sampling: int, dict_labels_to_m
     return wifi_corrected
 
 
-def correctMetrics(data: pd.DataFrame, columns_to_correct: list, t_max_sampling: int, dict_labels_to_meters: dict) -> pd.DataFrame:
+def correctMetrics(data: pd.DataFrame, columns_to_correct: list, t_max_sampling: int,
+                   dict_labels_to_meters: dict) -> pd.DataFrame:
     """
     Coge un dataset de métricas y aplica el siguiente preprocesado:
             1) Ajuste de frecuencia muestral a 1 muestra / segundo
@@ -195,6 +199,79 @@ def interpolacionConcatenada(data: pd.DataFrame) -> pd.DataFrame:
                 new_data.iloc[idx_row, wifi] = new_data.iloc[idx_row - 1, wifi]  # Rellenamos con el valor anterior
 
     return new_data
+
+
+def interpolacion_pixel_proximo(data: pd.DataFrame, threshold: int) -> pd.DataFrame:
+    """
+    Aplica una interpolación a los datos de WiFi, de forma que si hay un hueco en el timestamp, se rellena con el valor anterior si y solo si el valor anterior y posterior son iguales
+
+    Parameters:
+    -----------
+    data: pd.DataFrame
+        pd.DataFrame de los datos correspondientes al WiFi
+
+    threshold: int
+        Número de segundos sin recogida de datos consecutivos para considerar si rechazar la interpolación
+
+    Returns:
+    --------
+    interpolated_data: pd.DataFrame
+        pd.DataFrame de los datos interpolados
+
+    Example:
+    --------
+
+    Lectura del conjunto de datos
+
+    >>> data = pd.read_csv(f"{constants.data.train.FINAL_PATH}/groundtruth.csv")
+
+    Aplicación de la interpolación
+
+    >>> interpolated_data = interpolacion_pixel_proximo(data, threshold=30)
+    """
+    n_timestamp = data["AppTimestamp(s)"].unique().max() # Maximo timestamp de cada label
+    coords_unique = data.drop_duplicates(["Longitude", "Latitude"])[["Longitude", "Latitude"]].reset_index() # Coordenadas únicas
+    interpolated_data = pd.DataFrame(columns=data.columns) # Dataframe vacío
+
+    # Recorremos cada coordenada única
+    for idx_coord, [x, y] in tqdm(enumerate(zip(coords_unique["Longitude"], coords_unique["Latitude"]))):
+        query = data[(data["Longitude"] == x) & (data["Latitude"] == y)].reset_index() # Filtramos por coordenada
+
+        # Recorremos cada AP
+        for n_ap, ap in enumerate(constants.aps):
+
+            # Recorremos cada segundo de cada AP
+            for t in range(n_timestamp + 1):
+                if query[ap].sum() == 0: # Si todos los valores son 0, salimos del bucle
+                    break
+                if query[ap].iloc[t] == 0: # Si el valor es 0
+                    if t == 0: # Si es el primer segundo
+                        right_values = query.loc[(t + 1):min(n_timestamp, t + threshold), ap].values # Valores a la derecha
+                        right_values_distinct_zero = [idx for idx, x in enumerate(right_values) if x > 0] # Indices de los valores distintos de 0
+                        idx_min_right = np.min(right_values_distinct_zero) if len(right_values_distinct_zero) > 0 else 0 # Índice del valor mínimo
+                        query[ap].iloc[t] = right_values[idx_min_right] # Rellenamos con el primer valor derecho distinto de 0
+                    elif t == n_timestamp: # Si es el último segundo
+                        left_values = query.loc[max(0, t - threshold):(t - 1), ap].values # Valores a la izquierda
+                        left_values_distinct_zero = [idx for idx, x in enumerate(left_values) if x > 0] # Indices de los valores distintos de 0
+                        idx_max_left = np.max(left_values_distinct_zero) if len(left_values_distinct_zero) > 0 else 0 # Índice del valor máximo
+                        query[ap].iloc[t] = left_values[idx_max_left] # Rellenamos con el último valor izquierdo distinto de 0
+                    else:
+
+                        left_values = query.loc[max(0, t - threshold):(t - 1), ap].values # Valores a la izquierda
+                        right_values = query.loc[(t + 1):min(n_timestamp + 1, t + threshold + 1), ap].values # Valores a la derecha
+
+                        left_values_distinct_zero = [idx for idx, x in enumerate(left_values) if x > 0] # Indices de los valores distintos de 0
+                        right_values_distinct_zero = [idx for idx, x in enumerate(right_values) if x > 0] # Indices de los valores distintos de 0
+
+                        idx_max_left = np.max(left_values_distinct_zero) if len(left_values_distinct_zero) > 0 else 0 # Máximo índice en la izquierda
+                        idx_min_right = np.min(right_values_distinct_zero) if len(right_values_distinct_zero) > 0 else 0 # Mínimo índice en la derecha
+
+                        if left_values[idx_max_left] == right_values[idx_min_right]: # Si los valores son iguales
+                            query[ap].iloc[t] = left_values[idx_max_left] # Rellenamos con el valor izquierdo
+
+        interpolated_data = interpolated_data.append(query) # Añadimos al dataframe
+
+    return interpolated_data
 
 
 def read_checkpoint(checkpoint_path: str) -> pd.DataFrame:

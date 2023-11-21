@@ -117,13 +117,18 @@ if __name__ == "__main__":
     save_image = SaveImageTraining(X_reescalado, y_encoded, save_dir=path_cgan_28_images)
     save_model = LoggingCheckpointTraining(save_dir=path_cgan_28_checkpoints)
     hist = History()
-    decay_lr = ReduceLROnPlateau(monitor='loss_g', factor=0.9, patience=5, verbose=1, min_lr=0.00001)
+    # decay_lr = ReduceLROnPlateau(monitor='loss_g', factor=0.9, patience=5, verbose=1, min_lr=0.00001)
 
+    # callbacks = [
+    #     save_image,
+    #     save_model,
+    #     hist,
+    #     decay_lr
+    # ]
     callbacks = [
         save_image,
         save_model,
-        hist,
-        decay_lr
+        hist
     ]
 
     #  modelo cGAN
@@ -131,8 +136,8 @@ if __name__ == "__main__":
 
     #  compile model
     cgan.compile(
-        Adam(learning_rate=0.001, beta_1=0.5),
-        Adam(learning_rate=0.001, beta_1=0.5),
+        Adam(learning_rate=0.0005, beta_1=0.5),
+        Adam(learning_rate=0.0005, beta_1=0.5),
         tf.keras.losses.BinaryCrossentropy(),
         tf.keras.losses.BinaryCrossentropy()
     )
