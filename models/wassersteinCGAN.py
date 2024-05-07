@@ -172,9 +172,14 @@ if __name__ == "__main__":
         - batch_size = 64
         - optimizer = RMSprop(learning_rate=0.00005)
     """
-    learning_rates = [0.00005, 0.0001, 0.0005, 0.001, 0.005]
-    n_critics = [1, 2, 3, 4, 5]
-    clip_values = [0.001, 0.005, 0.01, 0.05, 0.1]
+    # learning_rates = [0.00005, 0.0001, 0.0005, 0.001, 0.005]
+    # n_critics = [1, 2, 3, 4, 5]
+    # clip_values = [0.001, 0.005, 0.01, 0.05, 0.1]
+    # latent_dim = 100
+
+    learning_rates = [0.0005]
+    n_critics = [5]
+    clip_values = [0.01]
     latent_dim = 100
 
     combinaciones = np.array(list(itertools.product(learning_rates, n_critics, clip_values)))

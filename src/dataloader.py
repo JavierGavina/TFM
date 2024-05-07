@@ -42,7 +42,7 @@ def preprocessGrid(grid_z0: np.ndarray) -> np.ndarray:
     """
 
     grid_z0 = grid_z0.ravel()
-    nx = ny = np.int(np.sqrt(grid_z0.shape[0]))
+    nx = ny = int(np.sqrt(grid_z0.shape[0]))
 
     # Los valores por encima de 1 y por debajo de 0 carecen de sentido, se fijan a 1 y 0 respectivamente
     grid_z0[grid_z0 < 0] = 0

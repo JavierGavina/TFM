@@ -90,6 +90,8 @@ class Models:
     training = "outputs/process_training"
     cgan_300 = "outputs/process_training/cGAN_300_300"
     cgan_28 = "outputs/process_training/cGAN_28_28"
+    wasserstein_cgan_gp_28 = "outputs/process_training/WCGAN_GP"
+    wasserstein_cgan_28 = "outputs/process_training/WCGAN"
 
 
 class RPMAP:

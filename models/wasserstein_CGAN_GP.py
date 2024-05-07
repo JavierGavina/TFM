@@ -195,9 +195,14 @@ if __name__ == "__main__":
         - gradient_penalty = 10
         - optimizer = Adam(lr = 0.0001, beta_1 = 0, beta_2 = 0.9)
     """
-    learning_rates = [0.00005, 0.0001, 0.0005, 0.001, 0.005]
-    n_critics = [1, 2, 3, 4, 5]
-    gradient_penalties = [5, 10, 15]
+    # learning_rates = [0.00005, 0.0001, 0.0005, 0.001, 0.005]
+    # n_critics = [1, 2, 3, 4, 5]
+    # gradient_penalties = [5, 10, 15]
+    # latent_dim = 100
+
+    learning_rates = [0.0001]
+    n_critics = [5]
+    gradient_penalties = [10]
     latent_dim = 100
 
     combinaciones = np.array(list(itertools.product(learning_rates, n_critics, gradient_penalties)))
